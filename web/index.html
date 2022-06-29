@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="el">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Μεσεγγύηση</title>
+</head>
+
+<body style="margin: 2em;">
+
+    <h1>DApp μεσάζοντα εγγυητή.</h1>
+
+    <h2>Αποστολή χρημάτων μέσω συμβολαίου:</h2>
+    <form id="contract-form">
+        <div class="form-group">
+            <label for="Sender Address">Διεύθυνση αποστολέα χρημάτων (ETH)</label>
+            <div id="from-Address">Όταν συνδεθεί το Metamask, εδώ εμφανίζεται η διεύθυνσή σας</div>
+            <small id="fromAddressHelp" class="form-text text-muted">Θα πρέπει τελικά να δώσετε έγκριση της μεταφοράς
+                από το Metamask.</small>
+        </div>
+        <div class="form-group">
+            <label for="Receiver Address">Διεύθυνση παραλήπτη χρημάτων (ETH)</label>
+            <input value="0xbCA06c02Bbc976c5e531dED17FF2f5b032844974" type="text" class="form-control" id="toAddress"
+                aria-describedby="toAddressHelp" placeholder="Enter the receipient address" required="true">
+            <small id="toAddressHelp" class="form-text text-muted">Εισάγετε την διεύθυνση (δημόσιο κλειδί) του
+                πορτοφολιού του παραλήπτη.</small>
+        </div>
+        <div class="form-group">
+            <label for="Amount">Ποσό</label>
+            <input value="2" type="text" class="form-control" id="amount" aria-describedby="amountHelp"
+                placeholder="Amount to send in ETH" required="true">
+            <small id="amountHelp" class="form-text text-muted">Πόσα χρήματα θα στείλετε σε Ether.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Αποστολή</button>
+        <div id="deposit-result">Πατώντας το κουμπί "Αποστολή" τα χρήματά σας θα πιστωθούν στο συμβόλαιο.</div>
+    </form>
+    <hr>
+    <h2>Υπόλοιπο:</h2>
+    <form id="get-balance-form">
+        <button type="submit" class="btn btn-primary">Δείτε το υπόλοιπο</button>
+        <div id="the-balance">Πατήστε το κουμπί για να δείτε το ποσό που είναι αποταμιευμένο στο συμβόλαιο.</div>
+    </form>
+    <h2>Εγγυητής:</h2>
+    <form id="approver-form">
+        <button type="submit" class="btn btn-primary">Δείτε τον εγγυητή</button>
+        <div id="approver-display">Πατήστε το κουμπί για να δείτε τη διεύθυνση του Εγγυητή.</div>
+    </form>
+
+    <form id="approve-form">
+        <button type="submit" class="btn btn-primary">Επιβεβαίωση συναλλαγής</button>
+        <div id="approval-display">Αν είστε ο εγγυητής, πατήστε το κουμπί για να εγκρίνετε τη συναλλαγή και τα χρήματα
+            να μεταφερθούν στον παραλήπτη.</div>
+    </form>
+
+    <script src="web3.min.js"></script>
+    <script src="Contract_abi.js"></script>
+    <!-- var abi = [...] -->
+    <script src="Contract_abi.js"></script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script>
+        //Επικοινωνία με metamask 1
+        window.addEventListener('load', async () => {
+            if (window.ethereum) {
+                const web3 = new Web3(window.ethereum);
+                try {
+                    // Request account access if needed
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    // Acccounts now exposed
+                } catch (error) {
+                    console.error(error);
+                }
+                // Legacy dapp browsers...
+            } 
+        });
+        if (typeof web3 != 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        }
+        //Επικοινωνία με metamask 2
+        var fromAddress;
+        web3.eth.getAccounts((error, accounts) => {
+            if (error) {
+                console.log('error:' + error);
+                return;
+            } else {
+                fromAddress = accounts[0];
+                $('#from-Address').html('<b>' + fromAddress + '</b>');
+            }
+        });
+        //Επικοινωνία με metamask 3
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                web3.eth.getAccounts((error, accounts) => {
+                    if (error) {
+                        console.log('error:' + error);
+                        return;
+                    } else {
+                        fromAddress = accounts[0];
+                        $('#from-Address').html('<b>' + fromAddress + '</b>');
+                    }
+                });
+            });
+        }
+
+        //change this to the ACTUAL contract address that you created on truffle migrate
+        var contractAddress = "0x5B38Da6a701c568545dCfcB03FcB875f56beddC4";
+        var ApprovalContract = new web3.eth.Contract(abi, contractAddress);
+        var result;
+
+        //make sure that addresses are legit
+        $('#contract-form').submit(async () => {
+            event.preventDefault();
+            $('#from-Address').html('<b>' + fromAddress + '</b>');
+            var toAddress = $('#toAddress').val();
+            //Επικοινωνία με blockchain
+            if (web3.utils.isAddress(toAddress) != true) {
+                alert('Δεν δώσατε σωστή διεύθυνση παραλήπτη.');
+                return;
+            }
+            // make sure the ETH is > 0
+            var amount = parseFloat($('#amount').val());
+            if (isNaN(amount) || amount <= 0) {
+                alert('Πρέπει να στείλετε περισσότερα από 0 ETH');
+                return;
+            }
+            // all is good, let's call our contract deposit
+            ApprovalContract.methods.deposit(toAddress).send(
+                { from: fromAddress, gas: 100000, value: web3.utils.toWei(amount.toString(), 'ether') },
+                (error, result) => {
+                    if (error) {
+                        console.log('error: ' + error);
+                        $('#deposit-result').html('Error: <b>' + error.message + '</b>');
+                    }
+                    else {
+                        $('#deposit-result').html('Success TX: <b>' + result + '</b>');
+                    }
+                });
+        });
+
+        $('#get-balance-form').submit(async () => {
+            event.preventDefault();
+            result = await web3.eth.getBalance(contractAddress);
+            console.log('balance: ' + result);
+            $('#the-balance').html('<b>Τρέχον υπόλοιπο: </b>' + web3.utils.fromWei(result));
+        });
+
+        $('#approve-form').submit(async () => {
+            event.preventDefault();
+            result = await ApprovalContract.methods.approve().send({ from: fromAddress, gas: 100000 });
+            console.log('result: ' + JSON.stringify(result));
+            $('#approval-display').html('Transaction Approved. TX: <b>' + result.transactionHash + '</b>');
+        });
+
+        $('#approver-form').submit(async () => {
+            event.preventDefault();
+            result = await ApprovalContract.methods.viewApprover().call();
+            console.log('result: ' + JSON.stringify(result));
+            $('#approver-display').html('Approver Address: <b>' + result[0] + '</b>');
+        });
+    </script>
+
+</body>
+
+</html>
